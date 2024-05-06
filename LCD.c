@@ -89,3 +89,12 @@ void clearLCD()
     _delay_ms(2);
     sendLCDCommand(0x80);  
 }
+
+// To convert int to char
+// char buffer[6];
+// itobase10(buffer, adcValue);
+char *itobase10(char *buf, uint16_t value)
+{
+  sprintf(buf, "%u", value);
+  return buf;
+}

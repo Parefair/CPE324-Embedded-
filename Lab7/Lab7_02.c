@@ -14,13 +14,88 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-int state = 1;
-int order = 0;
+// State of switch
+// 0 : off
+// 1 : run led
+// 2 : stop run led
+int state = 0;
+
+// for running LED
+int order = 0; 
+
+int timer = 0; // Count time continuously
+int start_time; 
+int stop_time;  
+
+void close_all_led(){
+    PORTB &= ~(1 << PORTB0);
+    PORTB &= ~(1 << PORTB1);
+    PORTB &= ~(1 << PORTB2);
+}
+
+void swap_light(uint8_t PORTXN){
+    close_all_led();
+    PORTB |= (1 << PORTXN);
+}
+
+ISR (TIMER1_OVF_vect)
+{
+    if (state == 1)
+    {
+        switch (order % 4){
+            case 0:
+                swap_light(PORTB0);
+                break;
+            case 1:
+            case 3:
+                swap_light(PORTB1);
+                break;
+            case 2:
+                swap_light(PORTB2);
+                break;
+        }
+        order++;
+    }
+    else if (state = 0){
+        close_all_led();
+    }
+    timer++;
+    TCNT1 = (65536/8.5)*7.5; // 1 sec
+}
+
+ISR (INT0_vect)
+{
+    // button is free
+    if (PIND & (1 << PORTD2)){
+        stop_time = timer;
+
+        // button is pressed longer than 3 second = Close all LED
+        if ((stop_time - start_time >= 2) && (state != 0)){
+            close_all_led();
+            state = 0;
+        }
+        // swap state between run and stop LED
+        else{
+            // if running -> stop it
+            if (state == 1){
+                state = 2;
+            }
+            // if it stop / off -> run it
+            else{
+                state = 1;
+            }
+        }
+    }
+    // button is pressed
+    else{
+        start_time = timer;
+    }
+}
 
 void initInterupt()
 {
-    // the falling edge of interupt INT0 genrate the interupt request
-    EICRA |= (1 << ISC01);
+    // the rising and falling edge of interupt INT0 genrate the interupt request
+    EICRA |= (1 << ISC00);
 
     // Enable External Interupt 0
     EIMSK |= (1 << INT0);
@@ -32,7 +107,7 @@ void initInterupt()
 void initTimer()
 {
     // Normal mode -> don't have to set anything
-//    TCCR1A = 0x00;
+    TCCR1A = 0x00;
     
     // Set Prescaler = 1024
   	TCCR1B |= (1 << CS12) | (1 << CS10);
@@ -41,63 +116,8 @@ void initTimer()
     TIMSK1 |= (1 << TOIE1);
     
     // 2^16 = 65536
-    //65536 - (65536/4)
-//    TCNT1 = 49152; 
-    TCNT1 = (65536/8.5)*6.5;
+    TCNT1 = (65536/8.5)*7.5; // 1 second
     
-}
-
-ISR (TIMER1_OVF_vect)
-{
-    if (state)
-    {
-        if(order == 0)
-        {
-            PORTB &= ~((1 << PORTB1)|(1 << PORTB2));
-            PORTB |= (1 << PORTB0);
-            TCNT1 = (65536/8.5)*6.5; // 1 sec
-            order = 1;
-        }
-        else if(order == 1)
-        {
-            PORTB &= ~((1 << PORTB0)|(1 << PORTB2));
-            PORTB |= (1 << PORTB1);
-            TCNT1 = (65536/8.5)*6.5; // 1 sec
-            order = 2;
-        }
-        else if(order == 2)
-        {
-            PORTB &= ~((1 << PORTB0)|(1 << PORTB1));
-            PORTB |= (1 << PORTB2);
-            TCNT1 = (65536/8.5)*6.5; // 1 sec
-            order = 3;
-        }
-        else
-        {
-            order = 0;
-            TCNT1 = 65535;
-        }
-    }
-    if (!state)
-    {
-        PORTB &= ~((1 << PORTB0) | (1 << PORTB0) | (1 << PORTB0));
-    }
-    order++;
-}
-
-ISR (INT0_vect)
-{
-//    state = !state;
-//    // if state = 0 turn of LED
-//    if(!state)
-//    {
-//        TIMSK1 &= ~(1<<TOIE1);
-//        PORTB &= ~(1 << PORTB0);
-//    }
-//    if(state)
-//    {
-//        TIMSK1 |= (1<<TOIE1);
-//    }
 }
 
 void setup()
@@ -118,19 +138,7 @@ void setup()
 
 void loop()
 {
-//    PORTB |= (1 << PORTB0);
-//    _delay_ms(500);
-//    PORTB &= ~(1 << PORTB0);
-//    PORTB |= (1 << PORTB1);
-//    _delay_ms(500);
-//    PORTB &= ~(1 << PORTB1);
-//    PORTB |= (1 << PORTB2);
-//    _delay_ms(500);
-//    PORTB &= ~(1 << PORTB2);
-//    PORTB |= (1 << PORTB1);
-//    _delay_ms(500);
-//    PORTB &= ~(1 << PORTB1);
-    
+ 
 }
 
 int main (void)
