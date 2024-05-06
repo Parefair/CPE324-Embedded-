@@ -4,8 +4,8 @@
 #define LCD_CTRL_PORT PORTD
 #define LCD_CTRL_DDR DDRD
 
-#define RS PD2
-#define E PD4
+#define RS PD0
+#define E PD1
 #define D4 PC0
 #define D5 PC1
 #define D6 PC2

@@ -105,7 +105,7 @@ ISR(TIMER1_OVF_vect)
 
 int main()
 {
-  Serial.begin(9600);
+  // Serial.begin(9600);
   long count;
   double distance;
  
