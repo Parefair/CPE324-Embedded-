@@ -70,7 +70,7 @@ ISR (INT0_vect)
         stop_time = timer;
 
         // button is pressed longer than 3 second = Close all LED
-        if ((stop_time - start_time >= 2) && (state != 0)){
+        if ((stop_time - start_time >= 3) && (state != 0)){
             close_all_led();
             state = 0;
         }
